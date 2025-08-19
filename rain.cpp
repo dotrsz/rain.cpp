@@ -57,7 +57,7 @@ struct Raindrop {
         : x(start_x), y(start_y), speed(s), head_char(h_char), move_counter(0), move_threshold(threshold_dist(gen)) {
         // Initialize tail characters
         tail_chars.resize(raindrop_len - 1); // Resize vector based on dynamic length
-        for (int i = 0; i < tail_chars.size(); ++i) {
+        for (size_t i = 0; i < tail_chars.size(); ++i) {
             tail_chars[i] = TAIL_CHARS[tail_char_dist(gen)];
         }
     }
@@ -338,7 +338,7 @@ int main(int argc, char* argv[]) {
                 it = raindrops.erase(it); // Remove if offscreen
             } else {
                 // Draw each segment of the raindrop
-                for (int i = 0; i < RAINDROP_LENGTH_GLOBAL; ++i) { // Use RAINDROP_LENGTH_GLOBAL
+                for (size_t i = 0; i < static_cast<size_t>(RAINDROP_LENGTH_GLOBAL); ++i) { // Use RAINDROP_LENGTH_GLOBAL
                     int current_y = it->y - i; // Calculate y position for this segment
 
                     if (current_y >= 0 && current_y < current_terminal_height) { // Use dynamic height
