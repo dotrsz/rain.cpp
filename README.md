@@ -10,7 +10,7 @@
 
 # rain.cpp
 
-the matrix x blade runner vibes.
+make it rain in yr terminal wih the matrix x blade runner vibes.
 
 ## local hax
 
