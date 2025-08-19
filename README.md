@@ -95,3 +95,4 @@ make targets for building and (blade) running
 | `--wind-speed <value>`     | set the wind speed.                                   |         |
 | `--lightning`              | turn on the lightning effect.                         |         |
 | `--lightning-duration <value>` | set how many frames the lightning flash lasts.        | 3       |
+| `--density <value>`        | set the percentage chance of a new raindrop spawning. | 25      |
