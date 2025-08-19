@@ -5,64 +5,64 @@
 #include <thread>
 #include <random>
 #include <array>
-#include <sys/ioctl.h> // For TIOCGWINSZ
-#include <unistd.h>    // For STDOUT_FILENO
-#include <algorithm>   // For std::find
-#include <map>         // For std::map
+#include <sys/ioctl.h> // for tiocgwinsz
+#include <unistd.h>    // for stdout_fileno
+#include <algorithm>   // for std::find
+#include <map>         // for std::map
 
-// ANSI escape codes for terminal manipulation
+// ansi escape codes for terminal manipulation
 #define CLEAR_SCREEN "\033[2J"
 #define CURSOR_HOME "\033[H"
 #define HIDE_CURSOR "\033[?25l"
 #define SHOW_CURSOR "\033[?25h"
 #define RESET_COLOR "\033[0m"
 
-// ANSI color codes
-#define COLOR_WHITE "\033[97m"      // Bright White
-#define COLOR_LIGHT_BLUE "\033[94m" // Bright Blue
-#define COLOR_DARK_BLUE "\033[34m"  // Regular Blue
-#define COLOR_DARK_GREY "\033[90m"  // Bright Black
-#define COLOR_BLACK "\033[30m"      // Regular Black
-#define COLOR_PUDDLE "\033[36m"     // Cyan for puddles
-#define COLOR_SPLASH "\033[96m"     // Bright Cyan for splash
+// ansi color codes
+#define COLOR_WHITE "\033[97m"      // bright white
+#define COLOR_LIGHT_BLUE "\033[94m" // bright blue
+#define COLOR_DARK_BLUE "\033[34m"  // regular blue
+#define COLOR_DARK_GREY "\033[90m"  // bright black
+#define COLOR_BLACK "\033[30m"      // regular black
+#define COLOR_PUDDLE "\033[36m"     // cyan for puddles
+#define COLOR_SPLASH "\033[96m"     // bright cyan for splash
 
-// --- Configuration (now variables, with defaults) ---
-int FRAME_DELAY_MS = 11; // Milliseconds per frame (approx 90 FPS)
-int RAINDROP_LENGTH_GLOBAL = 7; // Height of raindrops (global variable)
-int PUDDLE_LIFETIME = 30; // How many frames a puddle lasts (increased)
-const int SPLASH_LIFETIME = 3; // How many frames a splash lasts (kept const for array)
-int THRESHOLD_MIN = 1; // Minimum frames before a raindrop moves
-int THRESHOLD_MAX = 8; // Maximum frames before a raindrop moves
+// --- configuration (now variables, with defaults) ---
+int FRAME_DELAY_MS = 11; // milliseconds per frame (approx 90 fps)
+int RAINDROP_LENGTH_GLOBAL = 7; // height of raindrops (global variable)
+int PUDDLE_LIFETIME = 30; // how many frames a puddle lasts (increased)
+const int SPLASH_LIFETIME = 3; // how many frames a splash lasts (kept const for array)
+int THRESHOLD_MIN = 1; // minimum frames before a raindrop moves
+int THRESHOLD_MAX = 8; // maximum frames before a raindrop moves
 
-// --- Character sets ---
+// --- character sets ---
 const std::array<char, 5> HEAD_CHARS = {'@', 'O', 'o', '%', '*'};
 const std::array<char, 13> TAIL_CHARS = {'i', 'u', 'l', 'x', '.', '`', '!', ';', ':', '\'', '|', '{', '}'};
-const std::array<char, 3> PUDDLE_CHARS = {'~', '-', '='}; // Characters for puddles
+const std::array<char, 3> PUDDLE_CHARS = {'~', '-', '='}; // characters for puddles
 const std::array<std::string, SPLASH_LIFETIME> SPLASH_FRAMES = {
-    "o", // Frame 1
-    "()", // Frame 2
-    "()" // Frame 3 (same as frame 2, but could be different)
+    "o", // frame 1
+    "()", // frame 2
+    "()" // frame 3 (same as frame 2, but could be different)
 };
 
-// --- Raindrop structure ---
+// --- raindrop structure ---
 struct Raindrop {
     int x, y; // x, y represent the bottom-most character of the raindrop
-    int speed; // How many rows it moves when it does move
-    char head_char; // Stored for persistence
-    std::vector<char> tail_chars; // Changed to std::vector for dynamic sizing
-    int move_counter; // Counts frames until next move
-    int move_threshold; // How many frames before it moves
+    int speed; // how many rows it moves when it does move
+    char head_char; // stored for persistence
+    std::vector<char> tail_chars; // changed to std::vector for dynamic sizing
+    int move_counter; // counts frames until next move
+    int move_threshold; // how many frames before it moves
 
     Raindrop(int start_x, int start_y, int s, char h_char, std::mt19937& gen, std::uniform_int_distribution<>& tail_char_dist, std::uniform_int_distribution<>& threshold_dist, int raindrop_len)
         : x(start_x), y(start_y), speed(s), head_char(h_char), move_counter(0), move_threshold(threshold_dist(gen)) {
-        // Initialize tail characters
-        tail_chars.resize(raindrop_len - 1); // Resize vector based on dynamic length
+        // initialize tail characters
+        tail_chars.resize(raindrop_len - 1); // resize vector based on dynamic length
         for (size_t i = 0; i < tail_chars.size(); ++i) {
             tail_chars[i] = TAIL_CHARS[tail_char_dist(gen)];
         }
     }
 
-    void update() { // Removed unused gen and tail_char_dist parameters
+    void update() { // removed unused gen and tail_char_dist parameters
         move_counter++;
         if (move_counter >= move_threshold) {
             y += speed;
@@ -71,24 +71,24 @@ struct Raindrop {
     }
 
     bool is_offscreen(int terminal_height) const {
-        // A raindrop is offscreen if its bottom-most character (head) is at or below the screen
+        // a raindrop is offscreen if its bottom-most character (head) is at or below the screen
         return y >= terminal_height;
     }
 };
 
-// --- Puddle Information ---
+// --- puddle information ---
 struct PuddleInfo {
     char character;
-    int lifetime; // Remaining frames until disappearance
+    int lifetime; // remaining frames until disappearance
 
     PuddleInfo() : character(' '), lifetime(0) {}
 };
 
-// --- Splash Information ---
+// --- splash information ---
 struct Splash {
     int x, y;
-    int frame; // Current frame of the splash animation
-    int lifetime; // Remaining frames until disappearance
+    int frame; // current frame of the splash animation
+    int lifetime; // remaining frames until disappearance
 
     Splash(int start_x, int start_y) : x(start_x), y(start_y), frame(0), lifetime(SPLASH_LIFETIME) {}
 
@@ -99,7 +99,7 @@ struct Splash {
     }
 };
 
-// --- Help Message ---
+// --- help message ---
 void print_help() {
     std::cout << "Usage: rain [OPTIONS]\n";
     std::cout << "Simulates ASCII rain in the terminal.\n\n";
@@ -118,7 +118,7 @@ void print_help() {
     std::cout << "  rain --fps 60 --wind-direction right --wind-speed 2 --lightning\n";
 }
 
-// --- Main simulation logic ---
+// --- main simulation logic ---
 int main(int argc, char* argv[]) {
     int wind_direction = 0; // -1 for left, 1 for right, 0 for no wind
     int wind_speed = 0;
@@ -126,7 +126,7 @@ int main(int argc, char* argv[]) {
     int lightning_flash_duration = 3;
     int lightning_counter = 0;
 
-    // Parse command-line arguments
+    // parse command-line arguments
     for (int i = 1; i < argc; ++i) {
         std::string arg = argv[i];
         if (arg == "--help") {
@@ -155,11 +155,11 @@ int main(int argc, char* argv[]) {
             }
         } else if (arg == "--splash-lifetime") {
             if (i + 1 < argc) {
-                // SPLASH_LIFETIME is const, so we can't change it directly.
-                // If this needs to be configurable, SPLASH_FRAMES would also need to be dynamic.
-                // For now, we'll just ignore this if it's passed, or error out.
+                // splash_lifetime is const, so we can't change it directly.
+                // if this needs to be configurable, splash_frames would also need to be dynamic.
+                // for now, we'll just ignore this if it's passed, or error out.
                 std::cerr << "Warning: --splash-lifetime is currently not configurable.\n";
-                i++; // Consume the value
+                i++; // consume the value
             } else {
                 std::cerr << "Error: --splash-lifetime requires a value.\n";
                 return 1;
@@ -217,47 +217,47 @@ int main(int argc, char* argv[]) {
         return 1;
     }
 
-    // Disable buffering for immediate output
+    // disable buffering for immediate output
     std::ios_base::sync_with_stdio(false);
     std::cout.tie(NULL);
 
-    // Get terminal size dynamically
+    // get terminal size dynamically
     struct winsize ws;
     if (ioctl(STDOUT_FILENO, TIOCGWINSZ, &ws) == -1) {
         std::cerr << "Error getting terminal size. Using default 80x24." << std::endl;
-        // Fallback values if ioctl fails (e.g., not a TTY)
+        // fallback values if ioctl fails (e.g., not a tty)
         ws.ws_col = 80;
         ws.ws_row = 24;
     }
     int current_terminal_width = ws.ws_col;
     int current_terminal_height = ws.ws_row;
 
-    // Random number generation
+    // random number generation
     std::random_device rd;
-    // Combine random_device with high_resolution_clock for more robust seeding
+    // combine random_device with high_resolution_clock for more robust seeding
     auto seed = rd() ^ std::chrono::high_resolution_clock::now().time_since_epoch().count();
     std::mt19937 gen(seed);
 
     std::uniform_int_distribution<> head_char_dist(0, HEAD_CHARS.size() - 1);
     std::uniform_int_distribution<> tail_char_dist(0, TAIL_CHARS.size() - 1);
     std::uniform_int_distribution<> puddle_char_dist(0, PUDDLE_CHARS.size() - 1);
-    std::uniform_int_distribution<> speed_dist(1, 3); // Each move is 1 to 3 units (default variable speed)
-    std::uniform_int_distribution<> threshold_dist(THRESHOLD_MIN, THRESHOLD_MAX); // Move every 1 to 8 frames
+    std::uniform_int_distribution<> speed_dist(1, 3); // each move is 1 to 3 units (default variable speed)
+    std::uniform_int_distribution<> threshold_dist(THRESHOLD_MIN, THRESHOLD_MAX); // move every 1 to 8 frames
 
     std::vector<Raindrop> raindrops;
     std::vector<bool> column_has_active_raindrop(current_terminal_width, false);
-    std::vector<PuddleInfo> puddles(current_terminal_width); // Store puddle info
-    std::vector<Splash> splashes; // Store active splashes
+    std::vector<PuddleInfo> puddles(current_terminal_width); // store puddle info
+    std::vector<Splash> splashes; // store active splashes
 
-    // Hide cursor
+    // hide cursor
     std::cout << HIDE_CURSOR;
 
-    // Ensure cursor is shown and screen is cleared on exit
+    // ensure cursor is shown and screen is cleared on exit
     atexit([]() {
         std::cout << SHOW_CURSOR;
         std::cout << CLEAR_SCREEN;
         std::cout << CURSOR_HOME;
-        std::cout << RESET_COLOR; // Reset color on exit
+        std::cout << RESET_COLOR; // reset color on exit
     });
 
     while (true) {
@@ -265,40 +265,40 @@ int main(int argc, char* argv[]) {
             if (lightning_counter > 0) {
                 lightning_counter--;
                 if (lightning_counter == 0) {
-                    std::cout << "\033[27m"; // Invert off
+                    std::cout << "\033[27m"; // invert off
                 }
             } else {
                 if (std::uniform_int_distribution<>(0, 1000)(gen) < 5) {
-                    std::cout << "\033[7m"; // Invert on
+                    std::cout << "\033[7m"; // invert on
                     lightning_counter = lightning_flash_duration;
                 }
             }
         }
-        // Clear screen and move cursor to home
+        // clear screen and move cursor to home
         std::cout << CLEAR_SCREEN << CURSOR_HOME;
 
-        // Draw and update puddles
+        // draw and update puddles
         std::cout << COLOR_PUDDLE;
-        std::cout << "\033[" << current_terminal_height << ";1H"; // Move to bottom row
+        std::cout << "\033[" << current_terminal_height << ";1H"; // move to bottom row
         for (int x = 0; x < current_terminal_width; ++x) {
             if (puddles[x].lifetime > 0) {
                 std::cout << puddles[x].character;
                 puddles[x].lifetime--;
             } else {
-                std::cout << ' '; // Clear puddle if lifetime is 0
+                std::cout << ' '; // clear puddle if lifetime is 0
             }
         }
         std::cout << RESET_COLOR;
 
-        // Draw and update splashes
+        // draw and update splashes
         std::cout << COLOR_SPLASH;
         for (auto it = splashes.begin(); it != splashes.end(); ) {
             if (it->update()) {
-                // Draw splash frame
+                // draw splash frame
                 std::cout << "\033[" << it->y + 1 << ";" << it->x + 1 << "H" << SPLASH_FRAMES[it->frame -1];
                 ++it;
             } else {
-                // Clear splash area
+                // clear splash area
                 std::cout << "\033[" << it->y + 1 << ";" << it->x + 1 << "H";
                 for(size_t i = 0; i < SPLASH_FRAMES[it->frame -1].length(); ++i) {
                     std::cout << ' ';
@@ -309,7 +309,7 @@ int main(int argc, char* argv[]) {
         std::cout << RESET_COLOR;
 
 
-        // Spawn new raindrops in empty columns
+        // spawn new raindrops in empty columns
         for (int x = 0; x < current_terminal_width; ++x) {
             if (!column_has_active_raindrop[x]) {
                 char new_head_char = HEAD_CHARS[head_char_dist(gen)];
@@ -319,11 +319,11 @@ int main(int argc, char* argv[]) {
             }
         }
 
-        // Update and draw raindrops
+        // update and draw raindrops
         for (auto it = raindrops.begin(); it != raindrops.end(); ) {
-            int original_x = it->x; // Store x before potential erase
+            int original_x = it->x; // store x before potential erase
 
-            it->update(); // Call new update function
+            it->update(); // call new update function
             if (wind_speed > 0) {
                 it->x += (wind_direction * wind_speed);
                 if (it->x < 0) it->x = 0;
@@ -331,45 +331,45 @@ int main(int argc, char* argv[]) {
             }
 
             if (it->is_offscreen(current_terminal_height)) {
-                column_has_active_raindrop[original_x] = false; // Mark column as free
-                puddles[original_x].character = PUDDLE_CHARS[puddle_char_dist(gen)]; // Create a puddle
-                puddles[original_x].lifetime = PUDDLE_LIFETIME; // Set puddle lifetime
-                splashes.emplace_back(original_x, current_terminal_height -1); // Create a splash
-                it = raindrops.erase(it); // Remove if offscreen
+                column_has_active_raindrop[original_x] = false; // mark column as free
+                puddles[original_x].character = PUDDLE_CHARS[puddle_char_dist(gen)]; // create a puddle
+                puddles[original_x].lifetime = PUDDLE_LIFETIME; // set puddle lifetime
+                splashes.emplace_back(original_x, current_terminal_height -1); // create a splash
+                it = raindrops.erase(it); // remove if offscreen
             } else {
-                // Draw each segment of the raindrop
-                for (size_t i = 0; i < static_cast<size_t>(RAINDROP_LENGTH_GLOBAL); ++i) { // Use RAINDROP_LENGTH_GLOBAL
-                    int current_y = it->y - i; // Calculate y position for this segment
+                // draw each segment of the raindrop
+                for (size_t i = 0; i < static_cast<size_t>(RAINDROP_LENGTH_GLOBAL); ++i) { // use raindrop_length_global
+                    int current_y = it->y - i; // calculate y position for this segment
 
-                    if (current_y >= 0 && current_y < current_terminal_height) { // Use dynamic height
-                        // Move cursor to position
+                    if (current_y >= 0 && current_y < current_terminal_height) { // use dynamic height
+                        // move cursor to position
                         std::cout << "\033[" << current_y + 1 << ";" << it->x + 1 << "H";
 
-                        // Apply color and character based on segment position
-                        if (i == 0) { // Bottom-most character (head)
+                        // apply color and character based on segment position
+                        if (i == 0) { // bottom-most character (head)
                             std::cout << COLOR_WHITE << it->head_char;
-                        } else if (i > 0 && i <= it->tail_chars.size()) { // Tail segments
-                            // Map i to tail_chars index (i-1)
+                        } else if (i > 0 && i <= it->tail_chars.size()) { // tail segments
+                            // map i to tail_chars index (i-1)
                             if (i == 1) {
                                 std::cout << COLOR_LIGHT_BLUE << it->tail_chars[i-1];
                             } else if (i == 2) {
                                 std::cout << COLOR_DARK_BLUE << it->tail_chars[i-1];
                             } else if (i == 3) {
                                 std::cout << COLOR_DARK_GREY << it->tail_chars[i-1];
-                            } else { // For i >= 4, use black
+                            } else { // for i >= 4, use black
                                 std::cout << COLOR_BLACK << it->tail_chars[i-1];
                             }
                         }
                     }
                 }
-                std::cout << RESET_COLOR; // Reset color after drawing each raindrop
+                std::cout << RESET_COLOR; // reset color after drawing each raindrop
                 ++it;
             }
         }
 
-        std::cout.flush(); // Ensure all output is written
+        std::cout.flush(); // ensure all output is written
 
-        // Pause for animation
+        // pause for animation
         std::this_thread::sleep_for(std::chrono::milliseconds(FRAME_DELAY_MS));
     }
 

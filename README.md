@@ -1,83 +1,96 @@
 ```
-░▒▓███████▓▒░ ░▒▓██████▓▒░░▒▓█▓▒░▒▓███████▓▒░        ░▒▓██████▓▒░░▒▓███████▓▒░░▒▓███████▓▒░  
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░ 
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░ 
-░▒▓███████▓▒░░▒▓████████▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓███████▓▒░░▒▓███████▓▒░  
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░        
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓██▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░        
-░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓██▓▒░░▒▓██████▓▒░░▒▓█▓▒░      ░▒▓█▓▒░        
+░▒▓███████▓▒░ ░▒▓██████▓▒░░▒▓█▓▒░▒▓███████▓▒░        ░▒▓██████▓▒░░▒▓███████▓▒░░▒▓███████▓▒░
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░
+░▒▓███████▓▒░░▒▓████████▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓███████▓▒░░▒▓███████▓▒░
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░      ░▒▓█▓▒░
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓██▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░      ░▒▓█▓▒░
+░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓█▓▒░▒▓█▓▒░░▒▓█▓▒░▒▓██▓▒░░▒▓██████▓▒░░▒▓█▓▒░      ░▒▓█▓▒░
 ```
 
+# rain.cpp
 
-A simple C++ program that creates an ASCII art rain simulation in your terminal.
+the matrix x blade runner vibes.
 
-## Description
+## local hax
 
-This program simulates falling rain in the terminal using ASCII characters. It's a fun, lightweight application that can be customized with various command-line options to change the appearance and behavior of the rain.
+ensure you have a c++ compiler (like g++) and make.
 
-## Building the Program
-
-To build the program, you'll need a C++ compiler (like g++) and `make`.
-
-1.  **Clone the repository or download the source code.**
-2.  **Navigate to the project directory.**
-3.  **Run the `make` command:**
-
-    ```bash
-    make
-    ```
-
-    This will compile the `rain.cpp` file and create an executable named `rain`.
-
-## Running the Program
-
-To run the program, simply execute the compiled binary:
+### building
 
 ```bash
-./rain
+make
 ```
 
-### Options
+this will compile the code and drop an executable in the `bin` directory.
 
-You can customize the rain simulation with the following command-line options:
+### (blade) running
 
-| Option                | Description                                           | Default |
-| --------------------- | ----------------------------------------------------- | ------- |
-| `--help`              | Display the help message and exit.                    |         |
-| `--fps <value>`       | Set the frames per second.                            | 90      |
-| `--raindrop-length <value>` | Set the height of the raindrops.                      | 7       |
-| `--puddle-lifetime <value>` | Set how many frames puddles last.                     | 30      |
-| `--splash-lifetime <value>` | Set how many frames splashes last.                    | 3       |
-| `--speed-min <value>`   | Set the minimum speed threshold.                      | 1       |
-| `--speed-max <value>`   | Set the maximum speed threshold.                      | 8       |
-| `--wind-direction <left/right>` | Set the wind direction.                       |         |
-| `--wind-speed <value>`  | Set the wind speed.                                   |         |
-| `--lightning`         | Enable the lightning effect.                          |         |
+```bash
+./bin/rain
+```
 
-### Examples
-
-*   **Run with default settings:**
-
-    ```bash
-    ./rain
-    ```
-
-*   **Run with a lower frame rate and wind:**
-
-    ```bash
-    ./rain --fps 30 --wind-direction right --wind-speed 1
-    ```
-
-*   **Run with longer raindrops and lightning:**
-
-    ```bash
-    ./rain --raindrop-length 10 --lightning
-    ```
-
-## Cleaning Up
-
-To remove the compiled executable, run:
+### cleaning
 
 ```bash
 make clean
 ```
+
+## docker hax
+
+if you're all about that container life, you can use docker to build and run.
+
+### image building
+
+```bash
+make docker-build
+```
+
+or, if you're not into make:
+
+```bash
+docker build -t rain-app .
+```
+
+### image running
+
+```bash
+make docker-run
+```
+
+or, the long way:
+
+```bash
+docker run -it --rm rain-app
+```
+
+you can pass in any of the command-line flags too:
+
+```bash
+docker run -it --rm rain-app --fps 30 --wind-direction right --wind-speed 1
+```
+
+## make hax
+
+make targets for building and (blade) running
+
+*   `make all`: build the application locally
+*   `make clean`: remove build artifacts
+*   `make docker-build`: build the docker image
+*   `make docker-run`: run the application in a docker container
+*   `make help`: show this help message
+
+## flags
+
+| flag                  | description                                           | default |
+| --------------------- | ----------------------------------------------------- | ------- |
+| `--help`              | show the help message and exit.                       |         |
+| `--fps <value>`       | set the frames per second.                            | 90      |
+| `--raindrop-length <value>` | set the height of the raindrops.                      | 7       |
+| `--puddle-lifetime <value>` | set how many frames puddles last.                     | 30      |
+| `--splash-lifetime <value>` | set how many frames splashes last.                    | 3       |
+| `--speed-min <value>`   | set the minimum speed threshold.                      | 1       |
+| `--speed-max <value>`   | set the maximum speed threshold.                      | 8       |
+| `--wind-direction <left/right>` | set the wind direction.                       |         |
+| `--wind-speed <value>`  | set the wind speed.                                   |         |
+| `--lightning`         | turn on the lightning effect.                         |         |
