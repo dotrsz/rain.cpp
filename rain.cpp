@@ -9,6 +9,7 @@
 #include <unistd.h>    // for stdout_fileno
 #include <algorithm>   // for std::find
 #include <map>         // for std::map
+#include <cmath>       // for round
 
 // ansi escape codes for terminal manipulation
 #define CLEAR_SCREEN "\033[2J"
@@ -47,6 +48,7 @@ const std::array<std::string, SPLASH_LIFETIME> SPLASH_FRAMES = {
 // --- raindrop structure ---
 struct Raindrop {
     int x, y; // x, y represent the bottom-most character of the raindrop
+    float x_f; // floating point x for smooth wind
     int speed; // how many rows it moves when it does move
     char head_char; // stored for persistence
     std::vector<char> tail_chars; // changed to std::vector for dynamic sizing
@@ -54,7 +56,7 @@ struct Raindrop {
     int move_threshold; // how many frames before it moves
 
     Raindrop(int start_x, int start_y, int s, char h_char, std::mt19937& gen, std::uniform_int_distribution<>& tail_char_dist, std::uniform_int_distribution<>& threshold_dist, int raindrop_len)
-        : x(start_x), y(start_y), speed(s), head_char(h_char), move_counter(0), move_threshold(threshold_dist(gen)) {
+        : x(start_x), y(start_y), x_f(start_x), speed(s), head_char(h_char), move_counter(0), move_threshold(threshold_dist(gen)) {
         // initialize tail characters
         tail_chars.resize(raindrop_len - 1); // resize vector based on dynamic length
         for (size_t i = 0; i < tail_chars.size(); ++i) {
@@ -114,6 +116,7 @@ void print_help() {
     std::cout << "  --wind-direction <left|right> Set the wind direction (required if --wind-speed is set).\n";
     std::cout << "  --wind-speed <value>   Set the wind speed (required if --wind-direction is set).\n";
     std::cout << "  --lightning            Enable lightning effect.\n";
+    std::cout << "  --lightning-duration <value> Set how many frames the lightning flash lasts (default: 3).\n";
     std::cout << "\nExample:\n";
     std::cout << "  rain --fps 60 --wind-direction right --wind-speed 2 --lightning\n";
 }
@@ -123,7 +126,7 @@ int main(int argc, char* argv[]) {
     int wind_direction = 0; // -1 for left, 1 for right, 0 for no wind
     int wind_speed = 0;
     bool ENABLE_LIGHTNING = false;
-    int lightning_flash_duration = 3;
+    int lightning_flash_duration = 3; // default duration
     int lightning_counter = 0;
 
     // parse command-line arguments
@@ -206,6 +209,13 @@ int main(int argc, char* argv[]) {
             }
         } else if (arg == "--lightning") {
             ENABLE_LIGHTNING = true;
+        } else if (arg == "--lightning-duration") {
+            if (i + 1 < argc) {
+                lightning_flash_duration = std::stoi(argv[++i]);
+            } else {
+                std::cerr << "Error: --lightning-duration requires a value.\n";
+                return 1;
+            }
         } else {
             std::cerr << "Error: Unknown option '" << arg << "'. Use --help for usage.\n";
             return 1;
@@ -243,6 +253,7 @@ int main(int argc, char* argv[]) {
     std::uniform_int_distribution<> puddle_char_dist(0, PUDDLE_CHARS.size() - 1);
     std::uniform_int_distribution<> speed_dist(1, 3); // each move is 1 to 3 units (default variable speed)
     std::uniform_int_distribution<> threshold_dist(THRESHOLD_MIN, THRESHOLD_MAX); // move every 1 to 8 frames
+    std::uniform_int_distribution<> lightning_dist(0, 500); // for lightning
 
     std::vector<Raindrop> raindrops;
     std::vector<bool> column_has_active_raindrop(current_terminal_width, false);
@@ -265,11 +276,11 @@ int main(int argc, char* argv[]) {
             if (lightning_counter > 0) {
                 lightning_counter--;
                 if (lightning_counter == 0) {
-                    std::cout << "\033[27m"; // invert off
+                    std::cout << "\033[39;49m"; // reset foreground and background color
                 }
             } else {
-                if (std::uniform_int_distribution<>(0, 1000)(gen) < 5) {
-                    std::cout << "\033[7m"; // invert on
+                if (lightning_dist(gen) < 5) {
+                    std::cout << "\033[97;107m"; // bright white foreground on white background
                     lightning_counter = lightning_flash_duration;
                 }
             }
@@ -325,9 +336,16 @@ int main(int argc, char* argv[]) {
 
             it->update(); // call new update function
             if (wind_speed > 0) {
-                it->x += (wind_direction * wind_speed);
-                if (it->x < 0) it->x = 0;
-                if (it->x >= current_terminal_width) it->x = current_terminal_width - 1;
+                it->x_f += (wind_direction * wind_speed) / 4.0f;
+                it->x = static_cast<int>(round(it->x_f));
+
+                if (it->x < 0) {
+                    it->x = current_terminal_width - 1;
+                    it->x_f = it->x;
+                } else if (it->x >= current_terminal_width) {
+                    it->x = 0;
+                    it->x_f = it->x;
+                }
             }
 
             if (it->is_offscreen(current_terminal_height)) {

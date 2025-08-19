@@ -82,15 +82,16 @@ make targets for building and (blade) running
 
 ## flags
 
-| flag                  | description                                           | default |
-| --------------------- | ----------------------------------------------------- | ------- |
-| `--help`              | show the help message and exit.                       |         |
-| `--fps <value>`       | set the frames per second.                            | 90      |
-| `--raindrop-length <value>` | set the height of the raindrops.                      | 7       |
-| `--puddle-lifetime <value>` | set how many frames puddles last.                     | 30      |
-| `--splash-lifetime <value>` | set how many frames splashes last.                    | 3       |
-| `--speed-min <value>`   | set the minimum speed threshold.                      | 1       |
-| `--speed-max <value>`   | set the maximum speed threshold.                      | 8       |
+| flag                       | description                                           | default |
+| -------------------------- | ----------------------------------------------------- | ------- |
+| `--help`                   | show the help message and exit.                       |         |
+| `--fps <value>`            | set the frames per second.                            | 90      |
+| `--raindrop-length <value>`  | set the height of the raindrops.                      | 7       |
+| `--puddle-lifetime <value>`  | set how many frames puddles last.                     | 30      |
+| `--splash-lifetime <value>`  | set how many frames splashes last.                    | 3       |
+| `--speed-min <value>`      | set the minimum speed threshold.                      | 1       |
+| `--speed-max <value>`      | set the maximum speed threshold.                      | 8       |
 | `--wind-direction <left/right>` | set the wind direction.                       |         |
-| `--wind-speed <value>`  | set the wind speed.                                   |         |
-| `--lightning`         | turn on the lightning effect.                         |         |
+| `--wind-speed <value>`     | set the wind speed.                                   |         |
+| `--lightning`              | turn on the lightning effect.                         |         |
+| `--lightning-duration <value>` | set how many frames the lightning flash lasts.        | 3       |

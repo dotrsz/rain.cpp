@@ -23,9 +23,9 @@ docker-run: docker-build
 	@docker run -it --rm $(DOCKER_IMAGE_NAME)
 
 help:
-	@echo "Available targets:"
-	@echo "  all           - build the application locally"
-	@echo "  clean         - remove build artifacts"
-	@echo "  docker-build  - build the docker image"
-	@echo "  docker-run    - run the application in a docker container"
-	@echo "  help          - show this help message"
+	doccer-build  - build the docker image
+	docker-run    - run the application in a docker container
+	help          - show this help message
+
+	to pass arguments to docker-run, use the args variable:
+	  make docker-run args="--lightning --lightning-duration 1"
