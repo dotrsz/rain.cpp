@@ -1,0 +1,15 @@
+# ghost theme
+
+# colors
+head_color: "\033[95m"
+tail1_color: "\033[35m"
+tail2_color: "\033[96m"
+tail3_color: "\033[36m"
+tail4_color: "\033[90m"
+puddle_color: "\033[95m"
+splash_color: "\033[96m"
+
+# characters
+head_chars: "攻殻機動隊"
+tail_chars: "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()"
+puddle_chars: "|-_"

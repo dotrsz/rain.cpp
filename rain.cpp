@@ -33,6 +33,19 @@ int THRESHOLD_MAX = 8; // maximum frames before a raindrop moves
 int RAIN_DENSITY = 25; // percentage chance of a new raindrop spawning
 
 // --- color themes ---
+enum class ThemeEnum {
+    DEFAULT,
+    MATRIX,
+    RUNNER,
+    BLADE,
+    METRO,
+    JOHNNY,
+    AKIRA,
+    GHOST,
+    DARK,
+    STALKER
+};
+
 struct ColorTheme {
     std::string head;
     std::string tail1;
@@ -49,12 +62,12 @@ struct CharacterTheme {
     std::string puddle;
 };
 
-struct Theme {
+struct ThemeData {
     ColorTheme colors;
     CharacterTheme chars;
 };
 
-Theme current_theme;
+ThemeData current_theme;
 
 std::string unescape(const std::string& s) {
     std::string res;
@@ -199,7 +212,7 @@ void print_help() {
     std::cout << "  --lightning            Enable lightning effect.\n";
     std::cout << "  --lightning-duration <value> Set how many frames the lightning flash lasts (default: 3).\n";
     std::cout << "  --density <value>      Set the percentage chance of a new raindrop spawning (default: 25).\n";
-    std::cout << "  --theme <default|matrix|runner|blade|metro|johnny> Set the color theme (default: default).\n";
+    std::cout << "  --theme <default|matrix|runner|blade|metro|johnny|akira|ghost|dark|stalker> Set the color theme (default: default).\n";
     std::cout << "\nExample:\n";
     std::cout << "  rain --fps 60 --wind-direction right --wind-speed 2 --lightning --theme matrix\n";
 }

@@ -1,0 +1,15 @@
+# dark theme
+
+# colors
+head_color: "\033[93m"
+tail1_color: "\033[33m"
+tail2_color: "\033[90m"
+tail3_color: "\033[30m"
+tail4_color: "\033[30m"
+puddle_color: "\033[90m"
+splash_color: "\033[93m"
+
+# characters
+head_chars: "§Ж"
+tail_chars: "abcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()"
+puddle_chars: "_-"

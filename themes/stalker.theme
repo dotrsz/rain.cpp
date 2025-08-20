@@ -1,0 +1,15 @@
+# stalker theme
+
+# colors
+head_color: "\033[32m"
+tail1_color: "\033[92m"
+tail2_color: "\033[33m"
+tail3_color: "\033[90m"
+tail4_color: "\033[30m"
+puddle_color: "\033[32m"
+splash_color: "\033[92m"
+
+# characters
+head_chars: "Сталкер"
+tail_chars: "абвгдеёжзийклмнопрстуфхцчшщъыьэюя"
+puddle_chars: "."

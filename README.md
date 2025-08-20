@@ -112,3 +112,7 @@ out-of-the-box themes:
 | metro   | the mediator between head and hands must be the heart! |
 | johnny  | i want to get online... i need a computer! |
 | default | the default theme for the discerning hacker. |
+| akira   | the future is not a straight line. it is filled with many crossroads. |
+| ghost   | what if a cyber brain could possibly generate its own ghost, create a soul for itself? and if it did, just what would be the importance of being human then? |
+| dark    | you know, i have the strangest feeling i've been here before.      |
+| stalker | the zone is a very complicated system of traps, and they're all deadly. |
