@@ -46,7 +46,8 @@ enum class Theme {
     MATRIX,
     RUNNER,
     BLADE,
-    METRO
+    METRO,
+    JOHNNY
 };
 
 struct ColorTheme {
@@ -107,6 +108,15 @@ void initialize_themes() {
         "\033[30m", // tail4
         "\033[90m", // puddle
         "\033[37m"  // splash
+    };
+    themes[Theme::JOHNNY] = {
+        "\033[96m", // head
+        "\033[36m", // tail1
+        "\033[94m", // tail2
+        "\033[34m", // tail3
+        "\033[90m", // tail4
+        "\033[36m", // puddle
+        "\033[96m"  // splash
     };
 }
 
@@ -183,7 +193,7 @@ void print_help() {
     std::cout << "  --lightning            Enable lightning effect.\n";
     std::cout << "  --lightning-duration <value> Set how many frames the lightning flash lasts (default: 3).\n";
     std::cout << "  --density <value>      Set the percentage chance of a new raindrop spawning (default: 25).\n";
-    std::cout << "  --theme <default|matrix|runner|blade|metro> Set the color theme (default: default).\n";
+    std::cout << "  --theme <default|matrix|runner|blade|metro|johnny> Set the color theme (default: default).\n";
     std::cout << "\nExample:\n";
     std::cout << "  rain --fps 60 --wind-direction right --wind-speed 2 --lightning --theme matrix\n";
 }
@@ -446,8 +456,10 @@ int main(int argc, char* argv[]) {
                     current_theme = Theme::BLADE;
                 } else if (theme_str == "metro") {
                     current_theme = Theme::METRO;
+                } else if (theme_str == "johnny") {
+                    current_theme = Theme::JOHNNY;
                 } else if (theme_str != "default") {
-                    std::cerr << "Error: invalid theme. available themes: default, matrix, runner, blade, metro\n";
+                    std::cerr << "Error: invalid theme. available themes: default, matrix, runner, blade, metro, johnny\n";
                     return 1;
                 }
             } else {

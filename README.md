@@ -106,4 +106,5 @@ make targets for building and (blade) running
 | blade   | "it's too bad she won't live, but then again who does?"      |
 | matrix  | "are you listening to me, neo?"                                     |
 | metro   | "the mediator between head and hands must be the heart!" |
+| johnny  | "i want to get online... i need a computer!" |
 | default | "the default theme for the discerning hacker."        |
