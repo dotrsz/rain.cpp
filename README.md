@@ -100,11 +100,15 @@ make targets for building and (blade) running
 
 ## themes
 
-| theme   | quote                                                 |
+themes are now defined in files in the `themes` directory. each `.theme` file defines the colors and characters for a theme. you can create your own themes by creating a new `.theme` file in the `themes` directory.
+
+out-of-the-box themes:
+
+| theme   | description                                                 |
 | ------- | ----------------------------------------------------- |
 | runner  | all those moments will be lost in time, like tears in rain. |
-| blade   | it's too bad she won't live, but then again who does?      |
-| matrix  | are you listening to me, neo?                                     |
+| blade   | it's too bad she won't live, but then again who does? |
+| matrix  | are you listening to me, neo? |
 | metro   | the mediator between head and hands must be the heart! |
 | johnny  | i want to get online... i need a computer! |
-| default | the default theme for the discerning hacker.        |
+| default | the default theme for the discerning hacker. |

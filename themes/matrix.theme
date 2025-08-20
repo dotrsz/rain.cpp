@@ -1,0 +1,15 @@
+# matrix theme
+
+# colors
+head_color: "\033[32m"
+tail1_color: "\033[92m"
+tail2_color: "\033[32m"
+tail3_color: "\033[90m"
+tail4_color: "\033[30m"
+puddle_color: "\033[32m"
+splash_color: "\033[92m"
+
+# characters
+head_chars: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+tail_chars: "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
+puddle_chars: "01"

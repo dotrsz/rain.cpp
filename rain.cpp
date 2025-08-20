@@ -10,6 +10,8 @@
 #include <algorithm>   // for std::find
 #include <map>         // for std::map
 #include <cmath>       // for round
+#include <fstream>
+#include <sstream>
 
 // ansi escape codes for terminal manipulation
 #define CLEAR_SCREEN "\033[2J"
@@ -30,26 +32,7 @@ int THRESHOLD_MIN = 1; // minimum frames before a raindrop moves
 int THRESHOLD_MAX = 8; // maximum frames before a raindrop moves
 int RAIN_DENSITY = 25; // percentage chance of a new raindrop spawning
 
-// --- character sets ---
-const std::array<char, 5> HEAD_CHARS = {'@', 'O', 'o', '%', '*'};
-const std::array<char, 13> TAIL_CHARS = {'i', 'u', 'l', 'x', '.', '`', '!', ';', ':', '\'', '|', '{', '}'};
-const std::array<char, 3> PUDDLE_CHARS = {'~', '-', '='}; // characters for puddles
-const std::array<std::string, SPLASH_LIFETIME> SPLASH_FRAMES = {
-    "o", // frame 1
-    "()", // frame 2
-    "()" // frame 3 (same as frame 2, but could be different)
-};
-
 // --- color themes ---
-enum class Theme {
-    DEFAULT,
-    MATRIX,
-    RUNNER,
-    BLADE,
-    METRO,
-    JOHNNY
-};
-
 struct ColorTheme {
     std::string head;
     std::string tail1;
@@ -60,64 +43,87 @@ struct ColorTheme {
     std::string splash;
 };
 
-std::map<Theme, ColorTheme> themes;
-Theme current_theme = Theme::DEFAULT;
+struct CharacterTheme {
+    std::string head;
+    std::string tail;
+    std::string puddle;
+};
 
-void initialize_themes() {
-    themes[Theme::DEFAULT] = {
-        "\033[97m", // head
-        "\033[94m", // tail1
-        "\033[34m",  // tail2
-        "\033[90m",  // tail3
-        "\033[30m",  // tail4
-        "\033[36m",  // puddle
-        "\033[96m"   // splash
-    };
-    themes[Theme::MATRIX] = {
-        "\033[32m", // head
-        "\033[92m", // tail1
-        "\033[32m", // tail2
-        "\033[90m", // tail3
-        "\033[30m", // tail4
-        "\033[32m", // puddle
-        "\033[92m"  // splash
-    };
-    themes[Theme::RUNNER] = {
-        "\033[94m", // head
-        "\033[34m", // tail1
-        "\033[90m", // tail2
-        "\033[30m", // tail3
-        "\033[30m", // tail4
-        "\033[34m", // puddle
-        "\033[94m"  // splash
-    };
-    themes[Theme::BLADE] = {
-        "\033[91m", // head
-        "\033[34m", // tail1
-        "\033[90m", // tail2
-        "\033[30m", // tail3
-        "\033[30m", // tail4
-        "\033[34m", // puddle
-        "\033[91m"  // splash
-    };
-    themes[Theme::METRO] = {
-        "\033[97m", // head
-        "\033[37m", // tail1
-        "\033[90m", // tail2
-        "\033[30m", // tail3
-        "\033[30m", // tail4
-        "\033[90m", // puddle
-        "\033[37m"  // splash
-    };
-    themes[Theme::JOHNNY] = {
-        "\033[96m", // head
-        "\033[36m", // tail1
-        "\033[94m", // tail2
-        "\033[34m", // tail3
-        "\033[90m", // tail4
-        "\033[36m", // puddle
-        "\033[96m"  // splash
-    };
+struct Theme {
+    ColorTheme colors;
+    CharacterTheme chars;
+};
+
+Theme current_theme;
+
+std::string unescape(const std::string& s) {
+    std::string res;
+    res.reserve(s.length());
+    for (std::string::size_type i = 0; i < s.length(); ++i) {
+        if (s[i] == '\\' && i + 1 < s.length()) {
+            switch (s[++i]) {
+                case '\\': res += '\\'; break;
+                case '"': res += '"'; break;
+                case 'n': res += '\n'; break;
+                case 't': res += '\t'; break;
+                case '0':
+                    if (i + 2 < s.length() && s[i+1] == '3' && s[i+2] == '3') {
+                        res += '\033';
+                        i += 2;
+                    } else {
+                        res += s[i];
+                    }
+                    break;
+                default:
+                    res += s[i];
+                    break;
+            }
+        } else {
+            res += s[i];
+        }
+    }
+    return res;
+}
+
+bool load_theme(const std::string& theme_name) {
+    std::ifstream theme_file("themes/" + theme_name + ".theme");
+    if (!theme_file.is_open()) {
+        return false;
+    }
+
+    std::string line;
+    while (std::getline(theme_file, line)) {
+        if (line.empty() || line[0] == '#') {
+            continue;
+        }
+
+        std::istringstream iss(line);
+        std::string key, value;
+        if (std::getline(iss, key, ':') && std::getline(iss, value)) {
+            // trim leading whitespace from value
+            size_t first = value.find_first_not_of(" ");
+            if (std::string::npos != first) {
+                value = value.substr(first);
+            }
+            // trim quotes
+            if (value.front() == '"' && value.back() == '"') {
+                value = value.substr(1, value.length() - 2);
+            }
+
+            if (key == "head_color") current_theme.colors.head = unescape(value);
+            else if (key == "tail1_color") current_theme.colors.tail1 = unescape(value);
+            else if (key == "tail2_color") current_theme.colors.tail2 = unescape(value);
+            else if (key == "tail3_color") current_theme.colors.tail3 = unescape(value);
+            else if (key == "tail4_color") current_theme.colors.tail4 = unescape(value);
+            else if (key == "puddle_color") current_theme.colors.puddle = unescape(value);
+            else if (key == "splash_color") current_theme.colors.splash = unescape(value);
+            else if (key == "head_chars") current_theme.chars.head = value;
+            else if (key == "tail_chars") current_theme.chars.tail = value;
+            else if (key == "puddle_chars") current_theme.chars.puddle = value;
+        }
+    }
+
+    return true;
 }
 
 // --- raindrop structure ---
@@ -135,7 +141,7 @@ struct Raindrop {
         // initialize tail characters
         tail_chars.resize(raindrop_len - 1); // resize vector based on dynamic length
         for (size_t i = 0; i < tail_chars.size(); ++i) {
-            tail_chars[i] = TAIL_CHARS[tail_char_dist(gen)];
+            tail_chars[i] = current_theme.chars.tail[tail_char_dist(gen)];
         }
     }
 
@@ -215,7 +221,7 @@ void handle_lightning(bool enabled, int& counter, int duration, std::uniform_int
 }
 
 void draw_puddles(std::vector<PuddleInfo>& puddles, int width, int height) {
-    std::cout << themes[current_theme].puddle;
+    std::cout << current_theme.colors.puddle;
     std::cout << "\033[" << height << ";1H"; // move to bottom row
     for (int x = 0; x < width; ++x) {
         if (puddles[x].lifetime > 0) {
@@ -229,16 +235,16 @@ void draw_puddles(std::vector<PuddleInfo>& puddles, int width, int height) {
 }
 
 void update_and_draw_splashes(std::vector<Splash>& splashes) {
-    std::cout << themes[current_theme].splash;
+    std::cout << current_theme.colors.splash;
     for (auto it = splashes.begin(); it != splashes.end(); ) {
         if (it->update()) {
             // draw splash frame
-            std::cout << "\033[" << it->y + 1 << ";" << it->x + 1 << "H" << SPLASH_FRAMES[it->frame -1];
+            std::cout << "\033[" << it->y + 1 << ";" << it->x + 1 << "H" << current_theme.chars.puddle[0];
             ++it;
         } else {
             // clear splash area
             std::cout << "\033[" << it->y + 1 << ";" << it->x + 1 << "H";
-            for(size_t i = 0; i < SPLASH_FRAMES[it->frame -1].length(); ++i) {
+            for(size_t i = 0; i < 1; ++i) {
                 std::cout << ' ';
             }
             it = splashes.erase(it);
@@ -261,7 +267,7 @@ void spawn_raindrops(
     for (int x = 0; x < width; ++x) {
         if (!column_has_active_raindrop[x]) {
             if (density_dist(gen) <= RAIN_DENSITY) {
-                char new_head_char = HEAD_CHARS[head_char_dist(gen)];
+                char new_head_char = current_theme.chars.head[head_char_dist(gen)];
                 int new_speed = speed_dist(gen);
                 raindrops.emplace_back(x, -RAINDROP_LENGTH_GLOBAL, new_speed, new_head_char, gen, tail_char_dist, threshold_dist, RAINDROP_LENGTH_GLOBAL);
                 column_has_active_raindrop[x] = true;
@@ -301,7 +307,7 @@ void update_and_draw_raindrops(
 
         if (it->is_offscreen(height)) {
             column_has_active_raindrop[original_x] = false; // mark column as free
-            puddles[original_x].character = PUDDLE_CHARS[puddle_char_dist(gen)]; // create a puddle
+            puddles[original_x].character = current_theme.chars.puddle[puddle_char_dist(gen)]; // create a puddle
             puddles[original_x].lifetime = PUDDLE_LIFETIME; // set puddle lifetime
             splashes.emplace_back(original_x, height -1); // create a splash
             it = raindrops.erase(it); // remove if offscreen
@@ -316,17 +322,17 @@ void update_and_draw_raindrops(
 
                     // apply color and character based on segment position
                     if (i == 0) { // bottom-most character (head) 
-                        std::cout << themes[current_theme].head << it->head_char;
+                        std::cout << current_theme.colors.head << it->head_char;
                     } else if (i > 0 && i <= it->tail_chars.size()) { // tail segments
                         // map i to tail_chars index (i-1)
                         if (i == 1) {
-                            std::cout << themes[current_theme].tail1 << it->tail_chars[i-1];
+                            std::cout << current_theme.colors.tail1 << it->tail_chars[i-1];
                         } else if (i == 2) {
-                            std::cout << themes[current_theme].tail2 << it->tail_chars[i-1];
+                            std::cout << current_theme.colors.tail2 << it->tail_chars[i-1];
                         } else if (i == 3) {
-                            std::cout << themes[current_theme].tail3 << it->tail_chars[i-1];
+                            std::cout << current_theme.colors.tail3 << it->tail_chars[i-1];
                         } else { // for i >= 4, use black
-                            std::cout << themes[current_theme].tail4 << it->tail_chars[i-1];
+                            std::cout << current_theme.colors.tail4 << it->tail_chars[i-1];
                         }
                     }
                 }
@@ -339,12 +345,11 @@ void update_and_draw_raindrops(
 
 // --- main simulation logic ---
 int main(int argc, char* argv[]) {
-    initialize_themes();
-
-    int wind_direction = 0; // -1 for left, 1 for right, 0 for no wind
+    std::string theme_name = "default";
+    int wind_direction = 0;
     int wind_speed = 0;
     bool ENABLE_LIGHTNING = false;
-    int lightning_flash_duration = 3; // default duration
+    int lightning_flash_duration = 3;
     int lightning_counter = 0;
 
     // parse command-line arguments
@@ -447,21 +452,7 @@ int main(int argc, char* argv[]) {
             }
         } else if (arg == "--theme") {
             if (i + 1 < argc) {
-                std::string theme_str = argv[++i];
-                if (theme_str == "matrix") {
-                    current_theme = Theme::MATRIX;
-                } else if (theme_str == "runner") {
-                    current_theme = Theme::RUNNER;
-                } else if (theme_str == "blade") {
-                    current_theme = Theme::BLADE;
-                } else if (theme_str == "metro") {
-                    current_theme = Theme::METRO;
-                } else if (theme_str == "johnny") {
-                    current_theme = Theme::JOHNNY;
-                } else if (theme_str != "default") {
-                    std::cerr << "Error: invalid theme. available themes: default, matrix, runner, blade, metro, johnny\n";
-                    return 1;
-                }
+                theme_name = argv[++i];
             } else {
                 std::cerr << "Error: --theme requires a value.\n";
                 return 1;
@@ -470,6 +461,11 @@ int main(int argc, char* argv[]) {
             std::cerr << "Error: Unknown option '" << arg << "'. Use --help for usage.\n";
             return 1;
         }
+    }
+
+    if (!load_theme(theme_name)) {
+        std::cerr << "Error: could not load theme '" << theme_name << "'.\n";
+        return 1;
     }
 
     if ((wind_direction != 0 && wind_speed == 0) || (wind_direction == 0 && wind_speed != 0)) {
@@ -498,9 +494,9 @@ int main(int argc, char* argv[]) {
     auto seed = rd() ^ std::chrono::high_resolution_clock::now().time_since_epoch().count();
     std::mt19937 gen(seed);
 
-    std::uniform_int_distribution<> head_char_dist(0, HEAD_CHARS.size() - 1);
-    std::uniform_int_distribution<> tail_char_dist(0, TAIL_CHARS.size() - 1);
-    std::uniform_int_distribution<> puddle_char_dist(0, PUDDLE_CHARS.size() - 1);
+    std::uniform_int_distribution<> head_char_dist(0, current_theme.chars.head.size() - 1);
+    std::uniform_int_distribution<> tail_char_dist(0, current_theme.chars.tail.size() - 1);
+    std::uniform_int_distribution<> puddle_char_dist(0, current_theme.chars.puddle.size() - 1);
     std::uniform_int_distribution<> speed_dist(1, 3); // each move is 1 to 3 units (default variable speed)
     std::uniform_int_distribution<> threshold_dist(THRESHOLD_MIN, THRESHOLD_MAX); // move every 1 to 8 frames
     std::uniform_int_distribution<> lightning_dist(0, LIGHTNING_CHANCE_DIVISOR); // for lightning

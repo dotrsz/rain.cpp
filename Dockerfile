@@ -9,6 +9,7 @@ WORKDIR /app
 
 # copy source code
 COPY . .
+COPY themes /app/themes
 
 # build application
 RUN make

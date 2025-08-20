@@ -1,0 +1,15 @@
+# default theme
+
+# colors
+head_color: "\033[97m"
+tail1_color: "\033[94m"
+tail2_color: "\033[34m"
+tail3_color: "\033[90m"
+tail4_color: "\033[30m"
+puddle_color: "\033[36m"
+splash_color: "\033[96m"
+
+# characters
+head_chars: "@Oo%*"
+tail_chars: "iulx.'`;:'|{}"
+puddle_chars: "~-="
