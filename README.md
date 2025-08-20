@@ -102,17 +102,23 @@ make targets for building and (blade) running
 
 themes are now defined in files in the `themes` directory. each `.theme` file defines the colors and characters for a theme. you can create your own themes by creating a new `.theme` file in the `themes` directory.
 
-out-of-the-box themes:
+the format of a `.theme` file is a simple key-value format. comments are allowed using `#`. here is an example:
 
-| theme   | description                                                 |
-| ------- | ----------------------------------------------------- |
-| default | the default theme for the discerning hacker. |
-| blade   | it's too bad she won't live, but then again who does? |
-| runner  | all those moments will be lost in time, like tears in rain. |
-| matrix  | are you listening to me, neo? |
-| metro   | the mediator between head and hands must be the heart! |
-| johnny  | i want to get online... i need a computer! |
-| akira   | the future is not a straight line. it is filled with many crossroads. |
-| ghost   | what if a cyber brain could possibly generate its own ghost, create a soul for itself? and if it did, just what would be the importance of being human then? |
-| dark    | you know, i have the strangest feeling i've been here before.      |
-| stalker | the zone is a very complicated system of traps, and they're all deadly. |
+```
+# my cool theme
+
+# colors
+head_color: "\033[95m"
+tail1_color: "\033[35m"
+# ...
+
+# characters
+head_chars: "abc"
+tail_chars: "def"
+puddle_chars: "ghi"
+```
+
+you can use any of the themes in the `themes` directory by passing the file name (without the `.theme` extension) to the `--theme` option. for example, to use the `matrix.theme` file, you would use `--theme matrix`.
+
+if you do not specify a theme to use, rain.cpp will use the default theme for the discerning hacker.
+
