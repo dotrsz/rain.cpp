@@ -228,7 +228,7 @@ void print_help() {
     std::cout << "  --lightning            Enable lightning effect.\n";
     std::cout << "  --lightning-duration <value> Set how many frames the lightning flash lasts (default: 3).\n";
     std::cout << "  --density <value>      Set the percentage chance of a new raindrop spawning (default: 25).\n";
-    std::cout << "  --theme <default|matrix|runner|blade|metro|johnny|akira|ghost|dark|stalker> Set the color theme (default: default).\n";
+    std::cout << "  --theme <default|blade|runner|matrix|metro|johnny|akira|ghost|dark|stalker> Set the color theme (default: default).\n";
     std::cout << "\nExample:\n";
     std::cout << "  rain --fps 60 --wind-direction right --wind-speed 2 --lightning --theme matrix\n";
 }
