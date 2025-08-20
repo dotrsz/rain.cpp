@@ -20,7 +20,7 @@ docker-build:
 
 docker-run: docker-build
 	@echo "running application in Docker..."
-	@docker run -it --rm $(DOCKER_IMAGE_NAME)
+	@docker run -it --rm $(DOCKER_IMAGE_NAME) $(ARGS)
 
 help:
 	doccer-build  - build the docker image

@@ -12,6 +12,7 @@
 #include <cmath>       // for round
 #include <fstream>
 #include <sstream>
+#include <locale>
 
 // ansi escape codes for terminal manipulation
 #define CLEAR_SCREEN "\033[2J"
@@ -57,9 +58,9 @@ struct ColorTheme {
 };
 
 struct CharacterTheme {
-    std::string head;
-    std::string tail;
-    std::string puddle;
+    std::vector<std::string> head;
+    std::vector<std::string> tail;
+    std::vector<std::string> puddle;
 };
 
 struct ThemeData {
@@ -68,6 +69,19 @@ struct ThemeData {
 };
 
 ThemeData current_theme;
+
+std::vector<std::string> to_utf8_chars(const std::string& s) {
+    std::vector<std::string> chars;
+    for (size_t i = 0; i < s.length();) {
+        int len = 1;
+        if ((s[i] & 0xf8) == 0xf0) len = 4;
+        else if ((s[i] & 0xf0) == 0xe0) len = 3;
+        else if ((s[i] & 0xe0) == 0xc0) len = 2;
+        chars.push_back(s.substr(i, len));
+        i += len;
+    }
+    return chars;
+}
 
 std::string unescape(const std::string& s) {
     std::string res;
@@ -104,6 +118,8 @@ bool load_theme(const std::string& theme_name) {
         return false;
     }
 
+    theme_file.imbue(std::locale(""));
+
     std::string line;
     while (std::getline(theme_file, line)) {
         if (line.empty() || line[0] == '#') {
@@ -130,9 +146,9 @@ bool load_theme(const std::string& theme_name) {
             else if (key == "tail4_color") current_theme.colors.tail4 = unescape(value);
             else if (key == "puddle_color") current_theme.colors.puddle = unescape(value);
             else if (key == "splash_color") current_theme.colors.splash = unescape(value);
-            else if (key == "head_chars") current_theme.chars.head = value;
-            else if (key == "tail_chars") current_theme.chars.tail = value;
-            else if (key == "puddle_chars") current_theme.chars.puddle = value;
+            else if (key == "head_chars") current_theme.chars.head = to_utf8_chars(value);
+            else if (key == "tail_chars") current_theme.chars.tail = to_utf8_chars(value);
+            else if (key == "puddle_chars") current_theme.chars.puddle = to_utf8_chars(value);
         }
     }
 
@@ -144,12 +160,12 @@ struct Raindrop {
     int x, y; // x, y represent the bottom-most character of the raindrop
     float x_f; // floating point x for smooth wind
     int speed; // how many rows it moves when it does move
-    char head_char; // stored for persistence
-    std::vector<char> tail_chars; // changed to std::vector for dynamic sizing
+    std::string head_char; // stored for persistence
+    std::vector<std::string> tail_chars; // changed to std::vector for dynamic sizing
     int move_counter; // counts frames until next move
     int move_threshold; // how many frames before it moves
 
-    Raindrop(int start_x, int start_y, int s, char h_char, std::mt19937& gen, std::uniform_int_distribution<>& tail_char_dist, std::uniform_int_distribution<>& threshold_dist, int raindrop_len)
+    Raindrop(int start_x, int start_y, int s, std::string h_char, std::mt19937& gen, std::uniform_int_distribution<>& tail_char_dist, std::uniform_int_distribution<>& threshold_dist, int raindrop_len)
         : x(start_x), y(start_y), x_f(start_x), speed(s), head_char(h_char), move_counter(0), move_threshold(threshold_dist(gen)) {
         // initialize tail characters
         tail_chars.resize(raindrop_len - 1); // resize vector based on dynamic length
@@ -174,10 +190,10 @@ struct Raindrop {
 
 // --- puddle information ---
 struct PuddleInfo {
-    char character;
+    std::string character;
     int lifetime; // remaining frames until disappearance
 
-    PuddleInfo() : character(' '), lifetime(0) {}
+    PuddleInfo() : character(" "), lifetime(0) {}
 };
 
 // --- splash information ---
@@ -280,7 +296,7 @@ void spawn_raindrops(
     for (int x = 0; x < width; ++x) {
         if (!column_has_active_raindrop[x]) {
             if (density_dist(gen) <= RAIN_DENSITY) {
-                char new_head_char = current_theme.chars.head[head_char_dist(gen)];
+                std::string new_head_char = current_theme.chars.head[head_char_dist(gen)];
                 int new_speed = speed_dist(gen);
                 raindrops.emplace_back(x, -RAINDROP_LENGTH_GLOBAL, new_speed, new_head_char, gen, tail_char_dist, threshold_dist, RAINDROP_LENGTH_GLOBAL);
                 column_has_active_raindrop[x] = true;
@@ -358,6 +374,8 @@ void update_and_draw_raindrops(
 
 // --- main simulation logic ---
 int main(int argc, char* argv[]) {
+    std::setlocale(LC_ALL, "");
+
     std::string theme_name = "default";
     int wind_direction = 0;
     int wind_speed = 0;
