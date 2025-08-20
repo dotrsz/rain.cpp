@@ -18,15 +18,6 @@
 #define SHOW_CURSOR "\033[?25h"
 #define RESET_COLOR "\033[0m"
 
-// ansi color codes
-#define COLOR_WHITE "\033[97m"      // bright white
-#define COLOR_LIGHT_BLUE "\033[94m" // bright blue
-#define COLOR_DARK_BLUE "\033[34m"  // regular blue
-#define COLOR_DARK_GREY "\033[90m"  // bright black
-#define COLOR_BLACK "\033[30m"      // regular black
-#define COLOR_PUDDLE "\033[36m"     // cyan for puddles
-#define COLOR_SPLASH "\033[96m"     // bright cyan for splash
-
 // --- configuration (now variables, with defaults) ---
 const float WIND_SPEED_FACTOR = 4.0f;
 const int LIGHTNING_CHANCE_DIVISOR = 500;
@@ -48,6 +39,76 @@ const std::array<std::string, SPLASH_LIFETIME> SPLASH_FRAMES = {
     "()", // frame 2
     "()" // frame 3 (same as frame 2, but could be different)
 };
+
+// --- color themes ---
+enum class Theme {
+    DEFAULT,
+    MATRIX,
+    RUNNER,
+    BLADE,
+    METRO
+};
+
+struct ColorTheme {
+    std::string head;
+    std::string tail1;
+    std::string tail2;
+    std::string tail3;
+    std::string tail4;
+    std::string puddle;
+    std::string splash;
+};
+
+std::map<Theme, ColorTheme> themes;
+Theme current_theme = Theme::DEFAULT;
+
+void initialize_themes() {
+    themes[Theme::DEFAULT] = {
+        "\033[97m", // head
+        "\033[94m", // tail1
+        "\033[34m",  // tail2
+        "\033[90m",  // tail3
+        "\033[30m",  // tail4
+        "\033[36m",  // puddle
+        "\033[96m"   // splash
+    };
+    themes[Theme::MATRIX] = {
+        "\033[32m", // head
+        "\033[92m", // tail1
+        "\033[32m", // tail2
+        "\033[90m", // tail3
+        "\033[30m", // tail4
+        "\033[32m", // puddle
+        "\033[92m"  // splash
+    };
+    themes[Theme::RUNNER] = {
+        "\033[94m", // head
+        "\033[34m", // tail1
+        "\033[90m", // tail2
+        "\033[30m", // tail3
+        "\033[30m", // tail4
+        "\033[34m", // puddle
+        "\033[94m"  // splash
+    };
+    themes[Theme::BLADE] = {
+        "\033[91m", // head
+        "\033[34m", // tail1
+        "\033[90m", // tail2
+        "\033[30m", // tail3
+        "\033[30m", // tail4
+        "\033[34m", // puddle
+        "\033[91m"  // splash
+    };
+    themes[Theme::METRO] = {
+        "\033[97m", // head
+        "\033[37m", // tail1
+        "\033[90m", // tail2
+        "\033[30m", // tail3
+        "\033[30m", // tail4
+        "\033[90m", // puddle
+        "\033[37m"  // splash
+    };
+}
 
 // --- raindrop structure ---
 struct Raindrop {
@@ -122,8 +183,9 @@ void print_help() {
     std::cout << "  --lightning            Enable lightning effect.\n";
     std::cout << "  --lightning-duration <value> Set how many frames the lightning flash lasts (default: 3).\n";
     std::cout << "  --density <value>      Set the percentage chance of a new raindrop spawning (default: 25).\n";
+    std::cout << "  --theme <default|matrix|runner|blade|metro> Set the color theme (default: default).\n";
     std::cout << "\nExample:\n";
-    std::cout << "  rain --fps 60 --wind-direction right --wind-speed 2 --lightning\n";
+    std::cout << "  rain --fps 60 --wind-direction right --wind-speed 2 --lightning --theme matrix\n";
 }
 
 void handle_lightning(bool enabled, int& counter, int duration, std::uniform_int_distribution<>& dist, std::mt19937& gen) {
@@ -143,7 +205,7 @@ void handle_lightning(bool enabled, int& counter, int duration, std::uniform_int
 }
 
 void draw_puddles(std::vector<PuddleInfo>& puddles, int width, int height) {
-    std::cout << COLOR_PUDDLE;
+    std::cout << themes[current_theme].puddle;
     std::cout << "\033[" << height << ";1H"; // move to bottom row
     for (int x = 0; x < width; ++x) {
         if (puddles[x].lifetime > 0) {
@@ -157,7 +219,7 @@ void draw_puddles(std::vector<PuddleInfo>& puddles, int width, int height) {
 }
 
 void update_and_draw_splashes(std::vector<Splash>& splashes) {
-    std::cout << COLOR_SPLASH;
+    std::cout << themes[current_theme].splash;
     for (auto it = splashes.begin(); it != splashes.end(); ) {
         if (it->update()) {
             // draw splash frame
@@ -244,17 +306,17 @@ void update_and_draw_raindrops(
 
                     // apply color and character based on segment position
                     if (i == 0) { // bottom-most character (head) 
-                        std::cout << COLOR_WHITE << it->head_char;
+                        std::cout << themes[current_theme].head << it->head_char;
                     } else if (i > 0 && i <= it->tail_chars.size()) { // tail segments
                         // map i to tail_chars index (i-1)
                         if (i == 1) {
-                            std::cout << COLOR_LIGHT_BLUE << it->tail_chars[i-1];
+                            std::cout << themes[current_theme].tail1 << it->tail_chars[i-1];
                         } else if (i == 2) {
-                            std::cout << COLOR_DARK_BLUE << it->tail_chars[i-1];
+                            std::cout << themes[current_theme].tail2 << it->tail_chars[i-1];
                         } else if (i == 3) {
-                            std::cout << COLOR_DARK_GREY << it->tail_chars[i-1];
+                            std::cout << themes[current_theme].tail3 << it->tail_chars[i-1];
                         } else { // for i >= 4, use black
-                            std::cout << COLOR_BLACK << it->tail_chars[i-1];
+                            std::cout << themes[current_theme].tail4 << it->tail_chars[i-1];
                         }
                     }
                 }
@@ -267,6 +329,8 @@ void update_and_draw_raindrops(
 
 // --- main simulation logic ---
 int main(int argc, char* argv[]) {
+    initialize_themes();
+
     int wind_direction = 0; // -1 for left, 1 for right, 0 for no wind
     int wind_speed = 0;
     bool ENABLE_LIGHTNING = false;
@@ -369,6 +433,25 @@ int main(int argc, char* argv[]) {
                 }
             } else {
                 std::cerr << "Error: --density requires a value.\n";
+                return 1;
+            }
+        } else if (arg == "--theme") {
+            if (i + 1 < argc) {
+                std::string theme_str = argv[++i];
+                if (theme_str == "matrix") {
+                    current_theme = Theme::MATRIX;
+                } else if (theme_str == "runner") {
+                    current_theme = Theme::RUNNER;
+                } else if (theme_str == "blade") {
+                    current_theme = Theme::BLADE;
+                } else if (theme_str == "metro") {
+                    current_theme = Theme::METRO;
+                } else if (theme_str != "default") {
+                    std::cerr << "Error: invalid theme. available themes: default, matrix, runner, blade, metro\n";
+                    return 1;
+                }
+            } else {
+                std::cerr << "Error: --theme requires a value.\n";
                 return 1;
             }
         } else {
